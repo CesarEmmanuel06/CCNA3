@@ -1,0 +1,179 @@
+
+!
+! Last configuration change at 05:03:11 UTC Sun Oct 25 2026
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service compress-config
+!
+hostname SWAC2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$jrZD$7qpBqJT53ORW0gJYmD808.
+!
+username admin privilege 15 secret 5 $1$AhDH$5ZaAHmbNJwk7FcV.orKtY.
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+ip domain-name itla.lab
+ip cef
+no ipv6 cef
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+ no shutdown
+ description Trunk hacia SWM1 Ethernet1/1
+ switchport trunk allowed vlan 10,20,30,40
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface Ethernet0/1
+ no shutdown
+ description Trunk hacia SWM2 Ethernet1/1
+ switchport trunk allowed vlan 10,20,30,40
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface Ethernet0/2
+ no shutdown
+!
+interface Ethernet0/3
+ no shutdown
+!
+interface Ethernet1/0
+ no shutdown
+!
+interface Ethernet1/1
+ no shutdown
+!
+interface Ethernet1/2
+ no shutdown
+!
+interface Ethernet1/3
+ no shutdown
+!
+interface Ethernet2/0
+ no shutdown
+ description Usuario EST1
+ switchport access vlan 10
+ switchport mode access
+ spanning-tree portfast edge
+ spanning-tree bpduguard enable
+!
+interface Ethernet2/1
+ no shutdown
+!
+interface Ethernet2/2
+ no shutdown
+!
+interface Ethernet2/3
+ no shutdown
+!
+interface Ethernet3/0
+ no shutdown
+!
+interface Ethernet3/1
+ no shutdown
+!
+interface Ethernet3/2
+ no shutdown
+!
+interface Ethernet3/3
+ no shutdown
+!
+interface Ethernet4/0
+ no shutdown
+!
+interface Ethernet4/1
+ no shutdown
+!
+interface Ethernet4/2
+ no shutdown
+!
+interface Ethernet4/3
+ no shutdown
+!
+interface Ethernet5/0
+ no shutdown
+!
+interface Ethernet5/1
+ no shutdown
+!
+interface Ethernet5/2
+ no shutdown
+!
+interface Ethernet5/3
+ no shutdown
+!
+interface Vlan30
+ no shutdown
+ description Gestion SWAC2
+ ip address 172.16.10.69 255.255.255.192
+!
+ip default-gateway 172.16.10.65
+ip forward-protocol nd
+!
+ip http server
+ip http secure-server
+!
+ip ssh version 2
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ip access-list standard VTY-ADMIN
+ permit 172.16.10.64 0.0.0.63
+ permit 172.16.11.0 0.0.0.255
+!
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ access-class VTY-ADMIN in
+ login local
+ transport input ssh
+!
+!
+!
+end

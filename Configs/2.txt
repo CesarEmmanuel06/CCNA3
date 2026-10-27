@@ -1,0 +1,266 @@
+
+!
+! Last configuration change at 05:03:29 UTC Sun Oct 25 2026
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname R2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$UHGy$XOoasfInebg/XvsqxHPRR1
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+ip dhcp excluded-address 172.16.9.1 172.16.9.10
+ip dhcp excluded-address 172.16.9.126
+ip dhcp excluded-address 172.16.9.129 172.16.9.138
+!
+ip dhcp pool ACADEMICOS
+ network 172.16.9.0 255.255.255.128
+ default-router 172.16.9.1 
+ dns-server 172.16.10.10 8.8.8.8 
+ domain-name itla.lab
+!
+ip dhcp pool FINANZAS
+ network 172.16.9.128 255.255.255.128
+ default-router 172.16.9.129 
+ dns-server 172.16.10.10 8.8.8.8 
+ domain-name itla.lab
+!
+!
+!
+no ip domain lookup
+ip domain name itla.lab
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username admin privilege 15 secret 5 $1$fm1o$fYEA5WunWKncw7hHP69fs/
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ no shutdown
+ description Router-ID
+ ip address 172.16.11.2 255.255.255.255
+!
+interface Ethernet0/0
+ no shutdown
+ description Trunk hacia SWA13 Ethernet0/0
+ no ip address
+ duplex auto
+!
+interface Ethernet0/0.50
+ no shutdown
+ description GW FINANZAS VLAN 50
+ encapsulation dot1Q 50
+ ip address 172.16.9.129 255.255.255.128
+ ip access-group EXT-FIN-IN in
+!
+interface Ethernet0/0.60
+ no shutdown
+ description GW ACADEMICOS VLAN 60
+ encapsulation dot1Q 60
+ ip address 172.16.9.1 255.255.255.128
+ ip access-group EXT-ACA-IN in
+!
+interface Ethernet0/1
+ no shutdown
+ description LAN Datacenter hacia SW Ethernet0/0
+ ip address 172.16.10.1 255.255.255.192
+ ip access-group EXT-DC-IN in
+ duplex auto
+!
+interface Ethernet0/2
+ no shutdown
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet0/3
+ no shutdown
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Serial1/0
+ no shutdown
+ description P2P hacia R1-Core Serial1/0
+ ip address 172.16.10.194 255.255.255.252
+ ip ospf authentication message-digest
+ ip ospf message-digest-key 1 md5 7 04721F0A0E731C1C5F
+ serial restart-delay 0
+!
+interface Serial1/1
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/2
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/3
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/0
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/1
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/2
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/3
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+router ospf 1
+ router-id 172.16.11.2
+ auto-cost reference-bandwidth 1000
+ passive-interface default
+ no passive-interface Serial1/0
+ network 172.16.9.0 0.0.0.127 area 0
+ network 172.16.9.128 0.0.0.127 area 0
+ network 172.16.10.0 0.0.0.63 area 0
+ network 172.16.10.192 0.0.0.3 area 0
+ network 172.16.11.2 0.0.0.0 area 0
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip ssh version 2
+!
+ip access-list standard VTY-ADMIN
+ permit 172.16.10.64 0.0.0.63
+ permit 172.16.11.0 0.0.0.255
+!
+ip access-list extended EXT-ACA-IN
+ permit udp any eq bootpc any eq bootps
+ permit icmp 172.16.9.0 0.0.0.127 172.16.9.0 0.0.0.127 echo
+ permit ip 172.16.9.0 0.0.0.127 172.16.10.0 0.0.0.63
+ permit ip 172.16.9.0 0.0.0.127 172.16.8.0 0.0.0.255
+ permit tcp 172.16.9.0 0.0.0.127 172.16.10.64 0.0.0.63 established
+ permit icmp 172.16.9.0 0.0.0.127 172.16.10.64 0.0.0.63 echo-reply
+ deny   ip 172.16.9.0 0.0.0.127 172.16.0.0 0.1.255.255 log
+ permit ip 172.16.9.0 0.0.0.127 any
+ deny   ip any any log
+ip access-list extended EXT-DC-IN
+ permit icmp 172.16.10.0 0.0.0.63 172.16.10.0 0.0.0.63 echo
+ permit tcp 172.16.10.0 0.0.0.63 any established
+ permit udp host 172.16.10.10 eq domain any
+ permit icmp 172.16.10.0 0.0.0.63 any echo-reply
+ permit udp host 172.16.10.10 eq 5060 172.16.10.128 0.0.0.31
+ permit udp host 172.16.10.10 range 16384 32767 172.16.10.128 0.0.0.31
+ permit udp host 172.16.10.10 any eq domain
+ permit udp host 172.16.10.10 any eq ntp
+ permit tcp host 172.16.10.10 any eq www
+ permit tcp host 172.16.10.10 any eq 443
+ deny   ip any any log
+ip access-list extended EXT-FIN-IN
+ permit udp any eq bootpc any eq bootps
+ permit icmp 172.16.9.128 0.0.0.127 172.16.9.128 0.0.0.127 echo
+ permit ip 172.16.9.128 0.0.0.127 172.16.10.0 0.0.0.63
+ permit tcp 172.16.9.128 0.0.0.127 172.16.10.64 0.0.0.63 established
+ permit icmp 172.16.9.128 0.0.0.127 172.16.10.64 0.0.0.63 echo-reply
+ deny   ip 172.16.9.128 0.0.0.127 172.16.0.0 0.1.255.255 log
+ permit ip 172.16.9.128 0.0.0.127 any
+ deny   ip any any log
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ access-class VTY-ADMIN in
+ login local
+ transport input ssh
+!
+!
+end

@@ -1,0 +1,264 @@
+
+!
+! Last configuration change at 05:06:05 UTC Sun Oct 25 2026
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname R1-CORE
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$DtRk$II7y.orOxrbuL8LFaGB2f1
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+ip dhcp excluded-address 172.16.0.1 172.16.0.10
+ip dhcp excluded-address 172.16.8.1 172.16.8.10
+ip dhcp excluded-address 172.16.10.65 172.16.10.80
+ip dhcp excluded-address 172.16.10.129 172.16.10.131
+!
+ip dhcp pool ESTUDIANTES
+ network 172.16.0.0 255.255.248.0
+ default-router 172.16.0.1 
+ dns-server 172.16.10.10 8.8.8.8 
+ domain-name itla.lab
+!
+ip dhcp pool DOCENTES
+ network 172.16.8.0 255.255.255.0
+ default-router 172.16.8.1 
+ dns-server 172.16.10.10 8.8.8.8 
+ domain-name itla.lab
+!
+ip dhcp pool GESTION
+ network 172.16.10.64 255.255.255.192
+ default-router 172.16.10.65 
+ dns-server 172.16.10.10 8.8.8.8 
+ domain-name itla.lab
+!
+ip dhcp pool VOZ
+ network 172.16.10.128 255.255.255.224
+ default-router 172.16.10.129 
+!
+!
+!
+no ip domain lookup
+ip domain name itla.lab
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username admin privilege 15 secret 5 $1$iFjn$i/Nx3E7SY.VioCavU4VRO0
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ no shutdown
+ description Router-ID y servidor DHCP
+ ip address 172.16.11.1 255.255.255.255
+!
+interface Ethernet0/0
+ no shutdown
+ description Enlace L3 hacia SWM1 Ethernet0/0
+ ip address 172.16.10.197 255.255.255.252
+ ip nat inside
+ ip virtual-reassembly in
+ ip ospf authentication message-digest
+ ip ospf message-digest-key 1 md5 7 05221203201E1E5B4F
+ ip ospf network point-to-point
+ duplex auto
+!
+interface Ethernet0/1
+ no shutdown
+ description Enlace L3 hacia SWM2 Ethernet0/0
+ ip address 172.16.10.201 255.255.255.252
+ ip nat inside
+ ip virtual-reassembly in
+ ip ospf authentication message-digest
+ ip ospf message-digest-key 1 md5 7 022F10570A545F731A
+ ip ospf network point-to-point
+ duplex auto
+!
+interface Ethernet0/2
+ no shutdown
+ description Salida hacia ISP Ethernet0/0
+ ip address 203.0.113.2 255.255.255.252
+ ip access-group EXT-ISP-IN in
+ ip nat outside
+ ip virtual-reassembly in
+ duplex auto
+!
+interface Ethernet0/3
+ no shutdown
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Serial1/0
+ no shutdown
+ description P2P hacia R2 Serial1/0
+ ip address 172.16.10.193 255.255.255.252
+ ip nat inside
+ ip virtual-reassembly in
+ ip ospf authentication message-digest
+ ip ospf message-digest-key 1 md5 7 10671D15044542595A
+ serial restart-delay 0
+!
+interface Serial1/1
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/2
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/3
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/0
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/1
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/2
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial2/3
+ no shutdown
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+router ospf 1
+ router-id 172.16.11.1
+ auto-cost reference-bandwidth 1000
+ passive-interface default
+ no passive-interface Ethernet0/0
+ no passive-interface Ethernet0/1
+ no passive-interface Serial1/0
+ network 172.16.10.192 0.0.0.3 area 0
+ network 172.16.10.196 0.0.0.3 area 0
+ network 172.16.10.200 0.0.0.3 area 0
+ network 172.16.11.1 0.0.0.0 area 0
+ default-information originate
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip nat inside source list NAT-INSIDE interface Ethernet0/2 overload
+ip route 0.0.0.0 0.0.0.0 203.0.113.1
+ip ssh version 2
+!
+ip access-list standard NAT-INSIDE
+ permit 172.16.0.0 0.1.255.255
+ip access-list standard VTY-ADMIN
+ permit 172.16.10.64 0.0.0.63
+ permit 172.16.11.0 0.0.0.255
+!
+ip access-list extended EXT-ISP-IN
+ deny   ip 172.16.0.0 0.1.255.255 any log
+ deny   ip 10.0.0.0 0.255.255.255 any
+ deny   ip 192.168.0.0 0.0.255.255 any
+ deny   ip 127.0.0.0 0.255.255.255 any
+ permit icmp any any echo-reply
+ permit icmp any any unreachable
+ permit icmp any any time-exceeded
+ permit tcp any any established
+ permit udp any eq domain any
+ permit udp any eq ntp any
+ deny   ip any any log
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ access-class VTY-ADMIN in
+ login local
+ transport input ssh
+!
+!
+end
